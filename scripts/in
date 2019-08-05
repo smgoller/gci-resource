@@ -1,0 +1,57 @@
+#!/bin/sh
+set -eu -o pipefail
+exec 3>&1 1>&2
+
+DEST="$1"
+
+payload=$(mktemp /tmp/gci-resource-request.XXXXXX)
+
+cat | jq . > ${payload} <&0
+
+GCI=$(jq -r '.version.gci // empty' ${payload})
+FAMILY=$(jq -r '.source.family // empty' ${payload})
+FAMILY_PROJECT=$(jq -r '.source."family-project" // empty' ${payload})
+
+CREDENTIALS=$(jq -r '.source.key // empty' ${payload})
+PROJECT=$(jq -r '.source.project // empty' ${payload})
+ACCOUNT=$(echo "${CREDENTIALS}" | jq -r '.client_email')
+
+if [[ -z "${ACCOUNT}" ]]; then
+  echo "Unable to determine service account from provided credentials. Exiting..."
+  exit 1
+fi
+
+if [[ -z "${PROJECT}" ]]; then
+  echo "Unable to proceed with no provided project value. Exiting..."
+fi
+
+export credentials_file=$(mktemp /tmp/google-credentials.XXXXXX)
+echo "${CREDENTIALS}" > ${credentials_file}
+
+gcloud auth activate-service-account ${ACCOUNT} --key-file=${credentials_file}
+gcloud config set project ${PROJECT}
+
+LATEST_IMAGE=$(gcloud compute --project ${FAMILY_PROJECT} images describe-from-family ${FAMILY} --format json)
+IMAGE_VERSION=$(echo "${LATEST_IMAGE}" | jq -r '.name')
+IMAGE_FAMILY=$(echo "${LATEST_IMAGE}" | jq -r '.family')
+IMAGE_TIMESTAMP=$(echo "${LATEST_IMAGE}" | jq -r '.creationTimeStamp')
+IMAGE_SELFLINK=$(echo "${LATEST_IMAGE}" | jq -r '.selfLink')
+IMAGE_DESCRIPTION=$(echo "${LATEST_IMAGE}" | jq -r '.description')
+
+echo "${LATEST_IMAGE}" | jq -r . > "${DEST}/output.json"
+echo "${IMAGE_VERSION} > "$DEST/name"
+echo "{source_image: ${IMAGE_VERSION}}" > "${DEST}/packer.json"
+
+OUTPUT=$(cat <<'EOF'
+{
+  "version": { "gci": "${IMAGE_VERSION}" },
+  "metadata": [
+    { "name": "family", "value": "${IMAGE_FAMILY}"},
+    { "name": "timestamp", "value": "${IMAGE_TIMESTAMP}"},
+    { "name": "selflink", "value": "${IMAGE_SELFLINK}"},
+    { "name": "description", "value": "${IMAGE_DESCRIPTION}"}
+  ]
+}
+EOF
+)
+echo "${OUTPUT}" >&3

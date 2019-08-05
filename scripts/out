@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu -o pipefail
+exec 3>&1 1>&2
+
+payload=$(mktemp /tmp/gci-resource-request.XXXXXX)
+
+cat | jq . > ${payload} <&0
+

@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu -o pipefail
+exec 3>&1 1>&2
+
+payload=$(mktemp /tmp/gci-resource-request.XXXXXX)
+
+cat | jq . > ${payload} <&0
+
+GCI=$(jq -r '.version.gci // empty' ${payload})
+FAMILY=$(jq -r '.source.family // empty' ${payload})
+FAMILY_PROJECT=$(jq -r '.source."family-project" // empty' ${payload})
+
+CREDENTIALS=$(jq -r '.source.key // empty' ${payload})
+ACCOUNT=$(echo "${CREDENTIALS}" | jq -r '.client_email')
+PROJECT=$(echo "${CREDENTIALS}" | jq -r '.project_id')
+
+if [[ -z "${ACCOUNT}" ]]; then
+  echo "Unable to determine service account from provided credentials. Exiting..."
+  exit 1
+fi
+
+if [[ -z "${PROJECT}" ]]; then
+  echo "Unable to proceed with no provided project value. Exiting..."
+fi
+
+export credentials_file=$(mktemp /tmp/google-credentials.XXXXXX)
+echo "${CREDENTIALS}" > ${credentials_file}
+
+gcloud auth activate-service-account ${ACCOUNT} --key-file=${credentials_file}
+gcloud config set project ${PROJECT}
+
+LATEST_IMAGE=$(gcloud compute --project ${FAMILY_PROJECT} images describe-from-family ${FAMILY} --format json)
+IMAGE_VERSION=$(echo "${LATEST_IMAGE}" | jq -r '.name')
+
+
+echo "[{\"gci\": \"${IMAGE_VERSION}\"}]" >&3
