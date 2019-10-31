@@ -43,7 +43,7 @@ Places the following files in the destination:
 
 ## Example
 
-This pipeline will check for a new Ubuntu 14.04 LTS AMI in the Sydney region every hour, triggering the next step of the build plan if it finds one.
+This pipeline will check for a new Ubuntu 18.04 LTS GCI every hour, triggering the next step of the build plan if it finds one.
 
 ```yaml
 resource_types:
