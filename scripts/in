@@ -10,11 +10,11 @@ cat | jq . > ${payload} <&0
 
 GCI=$(jq -r '.version.gci // empty' ${payload})
 FAMILY=$(jq -r '.source.family // empty' ${payload})
-FAMILY_PROJECT=$(jq -r '.source."family-project" // empty' ${payload})
+FAMILY_PROJECT=$(jq -r '.source."family_project" // empty' ${payload})
 
 CREDENTIALS=$(jq -r '.source.key // empty' ${payload})
-PROJECT=$(jq -r '.source.project // empty' ${payload})
 ACCOUNT=$(echo "${CREDENTIALS}" | jq -r '.client_email')
+PROJECT=$(echo "${CREDENTIALS}" | jq -r '.project_id')
 
 if [[ -z "${ACCOUNT}" ]]; then
   echo "Unable to determine service account from provided credentials. Exiting..."
