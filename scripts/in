@@ -39,7 +39,7 @@ IMAGE_SELFLINK=$(echo "${LATEST_IMAGE}" | jq -r '.selfLink')
 IMAGE_DESCRIPTION=$(echo "${LATEST_IMAGE}" | jq -r '.description')
 
 echo "${LATEST_IMAGE}" | jq -r . > "${DEST}/output.json"
-echo "${IMAGE_VERSION} > "$DEST/name"
+echo "${IMAGE_VERSION}" > "$DEST/name"
 echo "{source_image: ${IMAGE_VERSION}}" > "${DEST}/packer.json"
 
 OUTPUT=$(cat <<'EOF'
