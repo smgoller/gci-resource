@@ -42,7 +42,7 @@ echo "${LATEST_IMAGE}" | jq -r . > "${DEST}/output.json"
 echo "${IMAGE_VERSION} > "$DEST/name"
 echo "{source_image: ${IMAGE_VERSION}}" > "${DEST}/packer.json"
 
-OUTPUT=$(cat <<'EOF'
+OUTPUT=$(cat <<EOF
 {
   "version": { "gci": "${IMAGE_VERSION}" },
   "metadata": [
