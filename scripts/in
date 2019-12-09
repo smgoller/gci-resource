@@ -34,7 +34,7 @@ gcloud config set project ${PROJECT}
 LATEST_IMAGE=$(gcloud compute --project ${FAMILY_PROJECT} images describe-from-family ${FAMILY} --format json)
 IMAGE_VERSION=$(echo "${LATEST_IMAGE}" | jq -r '.name')
 IMAGE_FAMILY=$(echo "${LATEST_IMAGE}" | jq -r '.family')
-IMAGE_TIMESTAMP=$(echo "${LATEST_IMAGE}" | jq -r '.creationTimeStamp')
+IMAGE_TIMESTAMP=$(echo "${LATEST_IMAGE}" | jq -r '.creationTimestamp')
 IMAGE_SELFLINK=$(echo "${LATEST_IMAGE}" | jq -r '.selfLink')
 IMAGE_DESCRIPTION=$(echo "${LATEST_IMAGE}" | jq -r '.description')
 
