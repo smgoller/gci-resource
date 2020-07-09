@@ -29,5 +29,5 @@ echo "${CREDENTIALS}" > ${credentials_file}
 gcloud auth activate-service-account ${ACCOUNT} --key-file=${credentials_file}
 gcloud config set project ${PROJECT}
 
-LATEST_IMAGE=$(gcloud compute --project ${FAMILY_PROJECT} images list --show-deprecated --filter="family=( ${FAMILY} )" --format json | jq '[.[] | { gci: .name}]')
+LATEST_IMAGE=$(gcloud compute --project ${FAMILY_PROJECT} images list --show-deprecated --filter="family=( ${FAMILY} ) AND status=( READY )" --sort-by=creationTimestamp --format json | jq '[.[] | { gci: .name}]')
 echo ${LATEST_IMAGE} >&3
