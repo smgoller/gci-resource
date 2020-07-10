@@ -32,20 +32,21 @@ gcloud auth activate-service-account ${ACCOUNT} --key-file=${credentials_file}
 gcloud config set project ${PROJECT}
 
 REQUESTED_IMAGE=$(gcloud compute --project ${FAMILY_PROJECT} images describe ${GCI} --format json)
-IMAGE_VERSION=$(echo "${REQUESTED_IMAGE}" | jq -r '.name')
+IMAGE_NAME=$(echo "${REQUESTED_IMAGE}" | jq -r '.name')
 IMAGE_FAMILY=$(echo "${REQUESTED_IMAGE}" | jq -r '.family')
 IMAGE_TIMESTAMP=$(echo "${REQUESTED_IMAGE}" | jq -r '.creationTimestamp')
 IMAGE_SELFLINK=$(echo "${REQUESTED_IMAGE}" | jq -r '.selfLink')
 IMAGE_DESCRIPTION=$(echo "${REQUESTED_IMAGE}" | jq -r '.description')
 
 echo "${REQUESTED_IMAGE}" | jq -r . > "${DEST}/output.json"
-echo "${IMAGE_VERSION}" > "$DEST/name"
-echo "{source_image: ${IMAGE_VERSION}}" > "${DEST}/packer.json"
+echo "${IMAGE_NAME}" > "$DEST/name"
+echo "{source_image: ${IMAGE_NAME}}" > "${DEST}/packer.json"
 
 OUTPUT=$(cat <<EOF
 {
-  "version": { "gci": "${IMAGE_VERSION}" },
+  "version": { "gci": "${IMAGE_SELFLINK}" },
   "metadata": [
+    { "name": "name", "value": "${IMAGE_NAME}"},
     { "name": "family", "value": "${IMAGE_FAMILY}"},
     { "name": "timestamp", "value": "${IMAGE_TIMESTAMP}"},
     { "name": "selflink", "value": "${IMAGE_SELFLINK}"},
